@@ -54,7 +54,7 @@ export interface ShikiExtraOptions {
    * Similar to `classname` option, supports dark mode.
    * Only works if theme's type is `DarkModeTheme`
    * @default
-   * { }
+   * { dark: 'shiki-dark', light: 'shiki-light' }
    */
   darkModeClassName?: DarkModeClassName
 
@@ -69,7 +69,7 @@ export interface ShikiExtraOptions {
    * Similar to `highlightedClassName` option, supports dark mode
    * Only works if theme's type is `DarkModeTheme`
    * @default
-   * { }
+   * { dark: 'highlighted-dark', light: 'highlighted-light' }
    */
   darkModeHighlightedClassName?: DarkModeClassName
 
@@ -87,7 +87,10 @@ export interface ShikiExtraOptions {
    * Similar to `diffLinesClassName` option, supports dark mode
    * Only works if theme's type is `DarkModeTheme`
    * @default
-   * { }
+   * {
+   *   minus: { dark: 'diff-dark remove', light: 'diff-light remove' }
+   *   plus: { dark: 'diff-dark add', light: 'diff-light, add' }
+   * }
    */
   darkModeDiffLinesClassName?: {
     minus: DarkModeClassName

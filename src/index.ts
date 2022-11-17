@@ -18,14 +18,29 @@ const MarkdownItShikiExtra: MarkdownIt.PluginWithOptions<ShikiExtraOptions> = (m
     langs,
     theme = 'nord',
     classname = 'shiki',
-    darkModeClassName,
+    darkModeClassName = {
+      dark: 'shiki-dark',
+      light: 'shiki-light',
+    },
     highlightedClassname = 'highlighted',
-    darkModeHighlightedClassName,
+    darkModeHighlightedClassName = {
+      dark: 'highlighted-dark',
+      light: 'highlighted-light',
+    },
     diffLinesClassName = {
       minus: 'diff remove',
       plus: 'diff add',
     },
-    darkModeDiffLinesClassName,
+    darkModeDiffLinesClassName = {
+      minus: {
+        dark: 'diff-dark remove',
+        light: 'diff-light remove',
+      },
+      plus: {
+        dark: 'diff-dark add',
+        light: 'diff-light add',
+      },
+    },
     highlighter,
   } = options ?? {}
 
@@ -72,8 +87,8 @@ const MarkdownItShikiExtra: MarkdownIt.PluginWithOptions<ShikiExtraOptions> = (m
     if (attrs.match(highlightLinesRE)) {
       const matchedAttrs = highlightLinesRE.exec(attrs)![1]
       if (darkMode) {
-        darkLineOptions = attrsToLines(matchedAttrs, darkModeHighlightedClassName?.dark ?? highlightedClassname)
-        lightLineOptions = attrsToLines(matchedAttrs, darkModeHighlightedClassName?.light ?? highlightedClassname)
+        darkLineOptions = attrsToLines(matchedAttrs, darkModeHighlightedClassName?.dark)
+        lightLineOptions = attrsToLines(matchedAttrs, darkModeHighlightedClassName?.light)
       }
       else { lineOptions = attrsToLines(matchedAttrs, highlightedClassname) }
     }
@@ -92,11 +107,11 @@ const MarkdownItShikiExtra: MarkdownIt.PluginWithOptions<ShikiExtraOptions> = (m
           const lightname = darkModeDiffLinesClassName?.minus.light
           darkDiffLineOptions.push({
             line: index + 1,
-            classes: !darkname ? arrayize(name) : arrayize(darkname),
+            classes: arrayize(darkname),
           })
           lightDiffLineOptions.push({
             line: index + 1,
-            classes: !lightname ? arrayize(name) : arrayize(lightname),
+            classes: arrayize(lightname),
           })
         }
         else {
@@ -135,10 +150,10 @@ const MarkdownItShikiExtra: MarkdownIt.PluginWithOptions<ShikiExtraOptions> = (m
 
     if (darkMode) {
       const dark = highlightCode(code, lang, { theme: darkMode.dark, lineOptions: darkLineOptions })
-        .replace('<pre class="shiki"', `<pre class="${!darkModeClassName?.dark ? handleClasses(classname) : handleClasses(darkModeClassName.dark)}"`)
+        .replace('<pre class="shiki"', `<pre class="${handleClasses(classname)} ${handleClasses(darkModeClassName.dark)}"`)
 
       const light = highlightCode(code, lang, { theme: darkMode.light, lineOptions: lightLineOptions })
-        .replace('<pre class="shiki"', `<pre class="${!darkModeClassName?.light ? handleClasses(classname) : handleClasses(darkModeClassName.light)}"`)
+        .replace('<pre class="shiki"', `<pre class="${handleClasses(classname)} ${handleClasses(darkModeClassName.light)}"`)
       return `<div class="shiki-container">${dark}${light}</div>`
     }
     else {
