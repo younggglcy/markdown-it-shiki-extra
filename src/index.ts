@@ -1,0 +1,153 @@
+import { join } from 'node:path'
+import type MarkdownIt from 'markdown-it'
+import { createSyncFn } from 'synckit'
+import type { HtmlRendererOptions, IThemeRegistration } from 'shiki'
+import type { DarkModeTheme, ShikiExtraOptions } from './types'
+import type { SyncRunFn } from './worker'
+import { arrayize, attrsToLines, handleClasses, mergeLineOptions } from './utils'
+
+interface HightlightCodeOptions {
+  theme?: IThemeRegistration
+  lineOptions?: HtmlRendererOptions['lineOptions']
+}
+
+type HighlightCodeFn = (code: string, lang: string, options?: HightlightCodeOptions) => string
+
+const MarkdownItShikiExtra: MarkdownIt.PluginWithOptions<ShikiExtraOptions> = (md, options) => {
+  const {
+    langs,
+    theme = 'nord',
+    classname = 'shiki',
+    darkModeClassName,
+    highlightedClassname = 'highlighted',
+    darkModeHighlightedClassName,
+    diffLinesClassName = {
+      minus: 'diff remove',
+      plus: 'diff add',
+    },
+    darkModeDiffLinesClassName,
+    highlighter,
+  } = options ?? {}
+
+  let darkMode: DarkModeTheme
+  let syncRun: SyncRunFn
+
+  if (!highlighter) {
+    const themes: IThemeRegistration[] = []
+    if (typeof theme === 'string') {
+      themes.push(theme)
+    }
+    else if ('dark' in theme || 'light' in theme) {
+      // @ts-ignore build error
+      darkMode = theme
+      for (const key in theme)
+        // @ts-ignore build error
+        themes.push(theme[key] as unknown as IThemeRegistration)
+    }
+    syncRun = createSyncFn(join(__dirname, './worker.ts'), { tsRunner: 'ts-node' })
+    syncRun('getHighlighter', { langs, themes })
+  }
+
+  const highlightCode: HighlightCodeFn = (code, lang, options) => {
+    const { lineOptions, theme } = options ?? {}
+    if (highlighter)
+      // @ts-expect-error no overload
+      return highlighter.codeToHtml(code, { lang, theme, lineOptions })
+
+    return syncRun('codeToHtml', {
+      code,
+      theme,
+      lang,
+      lineOptions,
+    })
+  }
+
+  // highlight logic
+  md.options.highlight = (code, lang, attrs) => {
+    let lineOptions: HtmlRendererOptions['lineOptions'] = []
+    let darkLineOptions: HtmlRendererOptions['lineOptions'] = []
+    let lightLineOptions: HtmlRendererOptions['lineOptions'] = []
+
+    const highlightLinesRE = /{(.+)}/
+    if (attrs.match(highlightLinesRE)) {
+      const matchedAttrs = highlightLinesRE.exec(attrs)![1]
+      if (darkMode) {
+        darkLineOptions = attrsToLines(matchedAttrs, darkModeHighlightedClassName?.dark ?? highlightedClassname)
+        lightLineOptions = attrsToLines(matchedAttrs, darkModeHighlightedClassName?.light ?? highlightedClassname)
+      }
+      else { lineOptions = attrsToLines(matchedAttrs, highlightedClassname) }
+    }
+
+    const diffLineOptions: HtmlRendererOptions['lineOptions'] = []
+    const darkDiffLineOptions: HtmlRendererOptions['lineOptions'] = []
+    const lightDiffLineOptions: HtmlRendererOptions['lineOptions'] = []
+    const minusLinesRE = /\/{2} \[\!code {2}--\]/
+    const plusLinesRE = /\/{2} \[\!code {2}++\]/
+    const codeArr = code.split('\n')
+    codeArr.forEach((line, index) => {
+      if (line.match(minusLinesRE)) {
+        const name = diffLinesClassName.minus!
+        if (darkMode) {
+          const darkname = darkModeDiffLinesClassName?.minus.dark
+          const lightname = darkModeDiffLinesClassName?.minus.light
+          darkDiffLineOptions.push({
+            line: index + 1,
+            classes: !darkname ? arrayize(name) : arrayize(darkname),
+          })
+          lightDiffLineOptions.push({
+            line: index + 1,
+            classes: !lightname ? arrayize(name) : arrayize(lightname),
+          })
+        }
+        else {
+          diffLineOptions.push({
+            line: index + 1,
+            classes: arrayize(name),
+          })
+        }
+      }
+      else if (line.match(plusLinesRE)) {
+        const name = diffLinesClassName.plus!
+        if (darkMode) {
+          const darkname = darkModeDiffLinesClassName?.plus.dark
+          const lightname = darkModeDiffLinesClassName?.plus.light
+          darkDiffLineOptions.push({
+            line: index + 1,
+            classes: !darkname ? arrayize(name) : arrayize(darkname),
+          })
+          lightDiffLineOptions.push({
+            line: index + 1,
+            classes: !lightname ? arrayize(name) : arrayize(lightname),
+          })
+        }
+        else {
+          diffLineOptions.push({
+            line: index + 1,
+            classes: arrayize(name),
+          })
+        }
+      }
+    })
+
+    lineOptions = mergeLineOptions(lineOptions, diffLineOptions)
+    darkLineOptions = mergeLineOptions(darkLineOptions, darkDiffLineOptions)
+    lightLineOptions = mergeLineOptions(lightLineOptions, lightDiffLineOptions)
+
+    if (darkMode) {
+      const dark = highlightCode(code, lang, { theme: darkMode.dark, lineOptions: darkLineOptions })
+        .replace('<pre class="shiki"', `<pre class="${!darkModeClassName?.dark ? handleClasses(classname) : handleClasses(darkModeClassName.dark)}"`)
+
+      const light = highlightCode(code, lang, { theme: darkMode.light, lineOptions: lightLineOptions })
+        .replace('<pre class="shiki"', `<pre class="${!darkModeClassName?.light ? handleClasses(classname) : handleClasses(darkModeClassName.light)}"`)
+      return `<div class="shiki-container">${dark}${light}</div>`
+    }
+    else {
+      let highlighted = highlightCode(code, lang, { lineOptions })
+      if (classname !== 'shiki')
+        highlighted = highlighted.replace('<pre class="shiki"', `<pre class="${handleClasses(classname)}"`)
+      return highlighted
+    }
+  }
+}
+
+export default MarkdownItShikiExtra

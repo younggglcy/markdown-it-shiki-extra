@@ -1,0 +1,12 @@
+{
+  "extends": "@antfu",
+  "overrides": [
+    {
+      "files": ["./src/index.ts"],
+      "rules": {
+        "@typescript-eslint/ban-ts-comment": 0,
+        "@typescript-eslint/prefer-ts-expect-error": 0
+      }
+    }
+  ]
+}
