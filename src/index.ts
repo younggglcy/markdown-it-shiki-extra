@@ -98,53 +98,62 @@ const MarkdownItShikiExtra: MarkdownIt.PluginWithOptions<ShikiExtraOptions> = (m
     const diffLineOptions: HtmlRendererOptions['lineOptions'] = []
     const darkDiffLineOptions: HtmlRendererOptions['lineOptions'] = []
     const lightDiffLineOptions: HtmlRendererOptions['lineOptions'] = []
-    const minusLinesRE = /\/{2} \[\!code {2}-{2}\]/
-    const plusLinesRE = /\/{2} \[\!code {2}\+{2}]/
-    const codeArr = code.split('\n')
-    codeArr.forEach((line, index) => {
-      if (line.match(minusLinesRE)) {
-        const name = diffLinesClassName.minus!
-        if (darkMode) {
-          const darkname = darkModeDiffLinesClassName?.minus.dark
-          const lightname = darkModeDiffLinesClassName?.minus.light
-          darkDiffLineOptions.push({
-            line: index + 1,
-            classes: arrayize(darkname),
-          })
-          lightDiffLineOptions.push({
-            line: index + 1,
-            classes: arrayize(lightname),
-          })
+    const minusLinesRE = /\/{2} \[\!code {2}-{2}\]/gm
+    const plusLinesRE = /\/{2} \[\!code {2}\+{2}]/gm
+    if (code.match(minusLinesRE)) {
+      const codeArr = code.split('\n')
+      codeArr.forEach((line, index) => {
+        if (line.match(minusLinesRE)) {
+          const name = diffLinesClassName.minus!
+          if (darkMode) {
+            const darkname = darkModeDiffLinesClassName?.minus.dark
+            const lightname = darkModeDiffLinesClassName?.minus.light
+            darkDiffLineOptions.push({
+              line: index + 1,
+              classes: arrayize(darkname),
+            })
+            lightDiffLineOptions.push({
+              line: index + 1,
+              classes: arrayize(lightname),
+            })
+          }
+          else {
+            diffLineOptions.push({
+              line: index + 1,
+              classes: arrayize(name),
+            })
+          }
         }
-        else {
-          diffLineOptions.push({
-            line: index + 1,
-            classes: arrayize(name),
-          })
+      })
+      code = code.replace(minusLinesRE, '')
+    }
+    else if (code.match(plusLinesRE)) {
+      const codeArr = code.split('\n')
+      codeArr.forEach((line, index) => {
+        if (line.match(plusLinesRE)) {
+          const name = diffLinesClassName.plus!
+          if (darkMode) {
+            const darkname = darkModeDiffLinesClassName?.plus.dark
+            const lightname = darkModeDiffLinesClassName?.plus.light
+            darkDiffLineOptions.push({
+              line: index + 1,
+              classes: !darkname ? arrayize(name) : arrayize(darkname),
+            })
+            lightDiffLineOptions.push({
+              line: index + 1,
+              classes: !lightname ? arrayize(name) : arrayize(lightname),
+            })
+          }
+          else {
+            diffLineOptions.push({
+              line: index + 1,
+              classes: arrayize(name),
+            })
+          }
         }
-      }
-      else if (line.match(plusLinesRE)) {
-        const name = diffLinesClassName.plus!
-        if (darkMode) {
-          const darkname = darkModeDiffLinesClassName?.plus.dark
-          const lightname = darkModeDiffLinesClassName?.plus.light
-          darkDiffLineOptions.push({
-            line: index + 1,
-            classes: !darkname ? arrayize(name) : arrayize(darkname),
-          })
-          lightDiffLineOptions.push({
-            line: index + 1,
-            classes: !lightname ? arrayize(name) : arrayize(lightname),
-          })
-        }
-        else {
-          diffLineOptions.push({
-            line: index + 1,
-            classes: arrayize(name),
-          })
-        }
-      }
-    })
+      })
+      code = code.replace(plusLinesRE, '')
+    }
 
     lineOptions = mergeLineOptions(lineOptions, diffLineOptions)
     darkLineOptions = mergeLineOptions(darkLineOptions, darkDiffLineOptions)
