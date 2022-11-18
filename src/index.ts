@@ -61,7 +61,7 @@ const MarkdownItShikiExtra: MarkdownIt.PluginWithOptions<ShikiExtraOptions> = (m
         themes.push(theme[key] as unknown as IThemeRegistration)
     }
     const __dirname = dirname(fileURLToPath(import.meta.url))
-    syncRun = createSyncFn(join(__dirname, './worker.ts'), { tsRunner: 'ts-node' })
+    syncRun = createSyncFn(join(__dirname, './worker'), { tsRunner: 'ts-node' })
     syncRun('getHighlighter', { langs, themes })
   }
 
