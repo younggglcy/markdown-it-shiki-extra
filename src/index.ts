@@ -1,4 +1,5 @@
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type MarkdownIt from 'markdown-it'
 import { createSyncFn } from 'synckit'
 import type { HtmlRendererOptions, IThemeRegistration } from 'shiki'
@@ -59,6 +60,7 @@ const MarkdownItShikiExtra: MarkdownIt.PluginWithOptions<ShikiExtraOptions> = (m
         // @ts-ignore build error
         themes.push(theme[key] as unknown as IThemeRegistration)
     }
+    const __dirname = dirname(fileURLToPath(import.meta.url))
     syncRun = createSyncFn(join(__dirname, './worker.ts'), { tsRunner: 'ts-node' })
     syncRun('getHighlighter', { langs, themes })
   }
