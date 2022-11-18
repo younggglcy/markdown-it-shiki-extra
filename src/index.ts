@@ -96,8 +96,8 @@ const MarkdownItShikiExtra: MarkdownIt.PluginWithOptions<ShikiExtraOptions> = (m
     const diffLineOptions: HtmlRendererOptions['lineOptions'] = []
     const darkDiffLineOptions: HtmlRendererOptions['lineOptions'] = []
     const lightDiffLineOptions: HtmlRendererOptions['lineOptions'] = []
-    const minusLinesRE = /\/{2} \[\!code {2}--\]/
-    const plusLinesRE = /\/{2} \[\!code {2}++\]/
+    const minusLinesRE = /\/{2} \[\!code {2}-{2}\]/
+    const plusLinesRE = /\/{2} \[\!code {2}\+{2}]/
     const codeArr = code.split('\n')
     codeArr.forEach((line, index) => {
       if (line.match(minusLinesRE)) {
