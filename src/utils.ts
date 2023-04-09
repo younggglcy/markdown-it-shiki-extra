@@ -1,6 +1,6 @@
 import type { HtmlRendererOptions } from 'shiki'
 
-export const handleClasses = (classname: string | string[] | undefined) => {
+export function handleClasses(classname: string | string[] | undefined) {
   if (!classname)
     return ''
   if (typeof classname === 'string')
@@ -9,7 +9,7 @@ export const handleClasses = (classname: string | string[] | undefined) => {
 }
 
 // inspired by vitepress source code
-export const attrsToLines = (attrs: string, classname?: string | string[]): HtmlRendererOptions['lineOptions'] => {
+export function attrsToLines(attrs: string, classname?: string | string[]): HtmlRendererOptions['lineOptions'] {
   if (!attrs.trim())
     return []
   const result: number[] = []
@@ -44,12 +44,11 @@ export const attrsToLines = (attrs: string, classname?: string | string[]): Html
   }))
 }
 
-export const mergeLineOptions = (
-  source: HtmlRendererOptions['lineOptions'],
-  target: HtmlRendererOptions['lineOptions'],
-): HtmlRendererOptions['lineOptions'] => {
+export function mergeLineOptions(source: HtmlRendererOptions['lineOptions'],
+  target: HtmlRendererOptions['lineOptions']): HtmlRendererOptions['lineOptions'] {
   target!.forEach(({ line, classes = [] }) => {
-    let lo = 0; let hi = source!.length - 1
+    let lo = 0
+    let hi = source!.length - 1
     while (lo < hi) {
       const mid = (lo + hi) >> 1
       const {
@@ -72,7 +71,7 @@ export const mergeLineOptions = (
   return source
 }
 
-export const arrayize = (value: string | string[]) => {
+export function arrayize(value: string | string[]) {
   if (typeof value === 'string')
     return [value]
   return value

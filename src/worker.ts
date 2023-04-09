@@ -18,7 +18,9 @@ function handler(command: 'codeToHtml', options: {
 }): Promise<string>
 
 async function handler(command: 'getHighlighter' | 'codeToHtml', options: any) {
-  if (command === 'getHighlighter') { highlighter = await _get(options) }
+  if (command === 'getHighlighter') {
+    highlighter = await _get(options)
+  }
   else {
     const { code, lang, lineOptions, theme } = options
 
