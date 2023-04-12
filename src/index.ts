@@ -177,3 +177,5 @@ const MarkdownItShikiExtra: MarkdownIt.PluginWithOptions<ShikiExtraOptions> = (m
 }
 
 export default MarkdownItShikiExtra
+
+export { ShikiExtraOptions } from './types'
