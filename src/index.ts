@@ -80,7 +80,7 @@ const MarkdownItShikiExtra: MarkdownIt.PluginWithOptions<ShikiExtraOptions> = (m
   }
 
   // highlight logic
-  md.options.highlight = (code, lang, attrs) => {
+  md.options.highlight = (code, lang = 'text', attrs) => {
     let lineOptions: HtmlRendererOptions['lineOptions'] = []
     let darkLineOptions: HtmlRendererOptions['lineOptions'] = []
     let lightLineOptions: HtmlRendererOptions['lineOptions'] = []
@@ -161,16 +161,17 @@ const MarkdownItShikiExtra: MarkdownIt.PluginWithOptions<ShikiExtraOptions> = (m
 
     if (darkMode) {
       const dark = highlightCode(code, lang, { theme: darkMode.dark, lineOptions: darkLineOptions })
-        .replace('<pre class="shiki"', `<pre class="${handleClasses(classname)} ${handleClasses(darkModeClassName.dark)}"`)
+        .replace('<pre class="shiki', `<pre class="${handleClasses(classname)} ${handleClasses(darkModeClassName.dark)}`)
 
       const light = highlightCode(code, lang, { theme: darkMode.light, lineOptions: lightLineOptions })
-        .replace('<pre class="shiki"', `<pre class="${handleClasses(classname)} ${handleClasses(darkModeClassName.light)}"`)
-      return `<div class="shiki-container">${dark}${light}</div>`
+        .replace('<pre class="shiki', `<pre class="${handleClasses(classname)} ${handleClasses(darkModeClassName.light)}`)
+      return `<div class="shiki-container language-${lang}">${dark}${light}</div>`
     }
     else {
       let highlighted = highlightCode(code, lang, { lineOptions })
+        .replace('<code>', `<code class="language-${lang}">`)
       if (classname !== 'shiki')
-        highlighted = highlighted.replace('<pre class="shiki"', `<pre class="${handleClasses(classname)}"`)
+        highlighted = highlighted.replace('<pre class="shiki', `<pre class="${handleClasses(classname)}`)
       return highlighted
     }
   }
